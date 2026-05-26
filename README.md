@@ -141,6 +141,20 @@ u-connect&nbsp;Express C library.
 
 ---
 
+## Roadmap
+
+- **NORA-B26 + Thread end-node** &mdash; *planned*. NORA-B26 is a u-blox
+  Bluetooth&nbsp;LE 6.0 module based on Nordic's **nRF54L10** SoC, whose radio
+  also supports **IEEE&nbsp;802.15.4**. A future release will add a
+  single-SoC Matter-over-Thread end-node target on NORA-B26, mirroring the
+  Wi-Fi end-node already shipped on NORA-W36. No source or binary is published
+  yet &mdash; watch this repo's [Releases](https://github.com/u-blox/u-connectMatter/releases)
+  page.
+- **NORA-W36 firmware updates** &mdash; tracked against the
+  [u-connectXpress NORA-W36 release notes](https://github.com/u-blox/u-connectXpress/tree/main/NORA-W36).
+
+---
+
 ## License
 
 Application code is released under the **Apache License 2.0**. The Matter SDK
