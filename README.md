@@ -51,6 +51,47 @@ Every release artifact ships with a SHA-256 checksum sidecar
 
 ---
 
+## Wiring &mdash; how to connect NORA-W36 to each host
+
+For **Windows / Linux PCs** there is no wiring: the **EVK-NORA-W36** evaluation
+kit exposes the module's UART through its on-board USB-UART bridge. Plug in the
+USB cable, the host enumerates a virtual COM port (`COMxx` on Windows,
+`/dev/ttyUSB0` on Linux), and the launcher auto-detects it.
+
+For the **STM32** and **Pico** targets the host's UART is wired directly to
+NORA-W36's UART. Cross TX&harr;RX, share GND, supply 3.3&nbsp;V. Hardware flow
+control (CTS/RTS) is **not** required &mdash; the firmware runs reliably without
+it on all supported boards.
+
+| Host board | Host UART | Host TX&nbsp;&rarr;&nbsp;NORA&nbsp;RX | Host RX&nbsp;&larr;&nbsp;NORA&nbsp;TX | Baud | Notes |
+|---|---|---|---|---|---|
+| **NUCLEO-H753ZI** | USART1 | **PB6** &mdash; Morpho CN7 pin&nbsp;1 | **PB7** &mdash; Morpho CN7 pin&nbsp;21 | 1&nbsp;Mbit/s | High-speed; CTS/RTS available on PA11/PA12 but unused |
+| **NUCLEO-H743ZI** | UART4 | **PA0** &mdash; CN11 pin&nbsp;28 | **PA1** &mdash; CN11 pin&nbsp;30 | 1&nbsp;Mbit/s | No HW flow control |
+| **NUCLEO-H723ZG** | UART4 | **PA0** | **PA1** | 1&nbsp;Mbit/s | No HW flow control |
+| **NUCLEO-H735IG** / Disco | USART1 | **PA9** &mdash; Arduino D8 (CN12) | **PA10** &mdash; Arduino D7 (CN12) | 1&nbsp;Mbit/s | |
+| **NUCLEO-H750ZB** | UART4 | **PA0** | **PA1** | 1&nbsp;Mbit/s | No HW flow control |
+| **NUCLEO-F407** (Disco / dev board) | USART1 | **PA9** | **PA10** | 1&nbsp;Mbit/s | |
+| **NUCLEO-F429ZI** | USART1 | **PA9** | **PA10** | 1&nbsp;Mbit/s | |
+| **NUCLEO-F439ZI** | USART1 | **PA9** | **PA10** | 1&nbsp;Mbit/s | |
+| **Raspberry Pi Pico** (RP2040) | UART0 | **GP0** &mdash; pin&nbsp;1 | **GP1** &mdash; pin&nbsp;2 | 115&nbsp;200 | |
+| **Raspberry Pi Pico 2** (RP2350) | UART0 | **GP0** &mdash; pin&nbsp;1 | **GP1** &mdash; pin&nbsp;2 | 115&nbsp;200 | |
+
+**Always required, every wired target:**
+- **GND** &harr; NORA-W36 **GND**
+- **3.3&nbsp;V** &rarr; NORA-W36 **VCC** (do **not** use 5&nbsp;V; NORA-W36 is 3V3-only)
+- (recommended) NORA-W36 **RESET_N** to a host GPIO so the launcher can hard-reset the module
+
+Debug output (Matter logs, QR code) is printed on a **second UART** on the host:
+ST-Link Virtual COM Port on all NUCLEO boards (USART3 PD8/PD9 on H7/F439, USART2
+PA2/PA3 on F407/F429) and the Pico's USB serial. No extra wiring needed for the
+debug console.
+
+NORA-W36 module pinout, electrical characteristics and EVK schematics are in the
+[NORA-W36 data sheet](https://www.u-blox.com/en/product/nora-w36-series) on the
+u-blox product page.
+
+---
+
 ## Quick start (Windows)
 
 1. Download the latest **`u-connect-matter-windows-x64-<version>.exe`** from
