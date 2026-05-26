@@ -136,7 +136,7 @@ host MCU &mdash; from an STM32 F407 to a desktop PC &mdash; can run a full
 Matter end-node by just driving a UART.
 
 The host-side glue is provided by
-[ucxclient](https://github.com/u-blox/u-connectClient), the open-source
+[u-connectClient](https://github.com/u-blox/u-connectClient), the open-source
 u-connect&nbsp;Express C library.
 
 ---
