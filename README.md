@@ -1,0 +1,113 @@
+# u-connectMatter
+
+**A binary-distribution, ready-to-run Matter end-node reference from u-blox.**
+
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue)](https://www.apache.org/licenses/LICENSE-2.0)
+[![Matter SDK](https://img.shields.io/badge/Matter%20SDK-1.5.1.0-brightgreen)](https://github.com/project-chip/connectedhomeip)
+[![Platforms](https://img.shields.io/badge/platforms-Windows%20%7C%20Linux%20%7C%20STM32%20%7C%20Pico-lightgrey)](https://github.com/u-blox/u-connectMatter/releases)
+[![Latest release](https://img.shields.io/github/v/release/u-blox/u-connectMatter?display_name=tag&sort=semver&label=download)](https://github.com/u-blox/u-connectMatter/releases/latest)
+
+> **Status:** This repository hosts **prebuilt, signed release binaries** of the
+> u-connect&nbsp;Matter reference application. The source tree is not (yet)
+> mirrored here — see [Releases](https://github.com/u-blox/u-connectMatter/releases)
+> for downloads or contact u-blox for source access.
+
+---
+
+## What is u-connectMatter?
+
+A Matter 1.5.1 end-node reference application that runs on a wide range of host
+platforms, using the **u-blox NORA-W36** module for Wi-Fi 4 + Bluetooth&nbsp;LE
+connectivity. It demonstrates how to ship a CSA-certifiable Matter product on
+top of u-connect&nbsp;Express firmware with minimal host-side code.
+
+Out of the box it implements the standard Matter end-node device types:
+
+- **Lighting** &mdash; On/Off + Level Control
+- **Door Lock**
+- **Switch** (action button)
+- **Temperature / humidity / occupancy sensor**
+- **Thermostat** (combo configuration)
+
+Commissioning is the standard Matter flow: scan the QR code from the device's
+serial console (or web dashboard) with the Apple Home / Google Home / Amazon
+Alexa / SmartThings app.
+
+---
+
+## Supported targets
+
+| Host platform | Hardware | Connectivity | Artifact |
+|---|---|---|---|
+| **Windows 10/11 x64** | PC + NORA-W36 EVK (USB-UART) | Wi-Fi + BLE via NORA-W36 | signed `.exe` |
+| **Linux x86_64** | PC / SBC + NORA-W36 EVK | Wi-Fi + BLE via NORA-W36 | `.tar.gz` |
+| **STM32 H7** (H753, H743, H735, H723, H750) | NUCLEO / Discovery + NORA-W36 | Wi-Fi + BLE via NORA-W36 | `.bin` / `.hex` / `.elf` |
+| **STM32 F4** (F407, F429, F439) | NUCLEO + NORA-W36 | Wi-Fi + BLE via NORA-W36 | `.bin` / `.hex` / `.elf` |
+| **Raspberry Pi Pico** (RP2040) | Pico + NORA-W36 | Wi-Fi + BLE via NORA-W36 | `.uf2` |
+| **Raspberry Pi Pico 2** (RP2350) | Pico 2 + NORA-W36 | Wi-Fi + BLE via NORA-W36 | `.uf2` |
+
+Every release artifact ships with a SHA-256 checksum sidecar
+(`<file>.sha256`). The Windows `.exe` is Authenticode-signed.
+
+---
+
+## Quick start (Windows)
+
+1. Download the latest **`u-connect-matter-windows-x64-<version>.exe`** from
+   [Releases](https://github.com/u-blox/u-connectMatter/releases/latest).
+2. Plug in your **EVK-NORA-W36** evaluation kit via USB.
+3. Run the `.exe`. The launcher auto-detects the EVK's COM port, opens the
+   serial link to the module, starts the Matter stack, and prints the
+   commissioning QR code on the console.
+4. Scan the QR code from your phone's Matter-compatible smart-home app.
+
+A built-in **web dashboard** (default `http://localhost:8080`) shows live link
+state, fabric/subscription health, and current cluster values.
+
+## Quick start (STM32 NUCLEO + NORA-W36)
+
+1. Wire NORA-W36 EVK UART to the NUCLEO header (RX/TX/CTS/RTS + 3V3 + GND).
+2. Drag-and-drop the matching `.bin`/`.hex` for your board (e.g.
+   `u-connect-matter-stm32-h753-<version>.bin`) onto the NUCLEO's mass-storage
+   programmer, or flash with STM32CubeProgrammer / `st-flash`.
+3. Open the NUCLEO virtual COM port at 115200 8N1 to see the QR code.
+
+## Quick start (Raspberry Pi Pico)
+
+1. Hold BOOTSEL while plugging in the Pico/Pico 2.
+2. Drag `u-connect-matter-pico-<version>.uf2` (or `pico2`) onto the
+   `RPI-RP2` / `RP2350` mass-storage drive.
+3. Open the Pico's USB serial port to see the QR code.
+
+---
+
+## Hardware: NORA-W36
+
+[NORA-W36](https://www.u-blox.com/en/product/nora-w36-series) is a u-blox
+short-range module providing **Wi-Fi 4** (2.4&nbsp;GHz) and **Bluetooth&nbsp;LE 5.3**
+in a single 10 &times; 14 &times; 2.2&nbsp;mm SMD package. In this application
+NORA-W36 runs u-connect&nbsp;Express firmware (`AT`-controlled offload engine)
+so any host MCU &mdash; from an STM32 F407 to a desktop PC &mdash; can run a
+full Matter end-node by just driving a UART.
+
+The host-side glue is provided by
+[ucxclient](https://github.com/u-blox/u-connectClient), the open-source
+u-connect&nbsp;Express C library.
+
+---
+
+## License
+
+Application code is released under the **Apache License 2.0**. The Matter SDK
+(Connectivity Standards Alliance &ndash; Matter, formerly Project CHIP) is
+distributed under its own Apache 2.0 license; see
+[connectedhomeip](https://github.com/project-chip/connectedhomeip) for details.
+
+---
+
+## Support / contact
+
+- u-blox support &mdash; <https://www.u-blox.com/en/support>
+- Product page &mdash; <https://www.u-blox.com/en/product/nora-w36-series>
+- u-connect&nbsp;Express documentation &mdash; <https://www.u-blox.com/en/docs/UBX-23001408>
+- Matter specification &mdash; <https://csa-iot.org/all-solutions/matter/>
