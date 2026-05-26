@@ -12,6 +12,13 @@
 > mirrored here — see [Releases](https://github.com/u-blox/u-connectMatter/releases)
 > for downloads or contact u-blox for source access.
 
+> **NORA-W36 firmware requirement:** Matter requires **u-connect&nbsp;Express
+> firmware 3.4.0 or newer** on the NORA-W36 module (earlier firmware lacks the
+> platform mDNS + IPv6 multicast features Matter depends on). Check your
+> module's version with `AT+GMR` and update via the
+> [u-connectXpress NORA-W36 release notes](https://github.com/u-blox/u-connectXpress/tree/main/NORA-W36)
+> if needed.
+
 ---
 
 ## What is u-connectMatter?
