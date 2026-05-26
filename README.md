@@ -109,5 +109,5 @@ distributed under its own Apache 2.0 license; see
 
 - u-blox support &mdash; <https://www.u-blox.com/en/support>
 - Product page &mdash; <https://www.u-blox.com/en/product/nora-w36-series>
-- u-connect&nbsp;Express documentation &mdash; <https://www.u-blox.com/en/docs/UBX-23001408>
+- u-connect&nbsp;Express &mdash; <https://github.com/u-blox/u-connectXpress>
 - Matter specification &mdash; <https://csa-iot.org/all-solutions/matter/>
