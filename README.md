@@ -17,8 +17,8 @@
 ## What is u-connectMatter?
 
 A Matter 1.5.1 end-node reference application that runs on a wide range of host
-platforms, using the **u-blox NORA-W36** module for Wi-Fi 4 + Bluetooth&nbsp;LE
-connectivity. It demonstrates how to ship a CSA-certifiable Matter product on
+platforms, using the **u-blox NORA-W36** module for dual-band Wi-Fi 4
+(2.4 + 5&nbsp;GHz) and Bluetooth&nbsp;LE 5.3 connectivity. It demonstrates how to ship a CSA-certifiable Matter product on
 top of u-connect&nbsp;Express firmware with minimal host-side code.
 
 Out of the box it implements the standard Matter end-node device types:
@@ -37,14 +37,17 @@ Alexa / SmartThings app.
 
 ## Supported targets
 
-| Host platform | Hardware | Connectivity | Artifact |
-|---|---|---|---|
-| **Windows 10/11 x64** | PC + NORA-W36 EVK (USB-UART) | Wi-Fi + BLE via NORA-W36 | signed `.exe` |
-| **Linux x86_64** | PC / SBC + NORA-W36 EVK | Wi-Fi + BLE via NORA-W36 | `.tar.gz` |
-| **STM32 H7** (H753, H743, H735, H723, H750) | NUCLEO / Discovery + NORA-W36 | Wi-Fi + BLE via NORA-W36 | `.bin` / `.hex` / `.elf` |
-| **STM32 F4** (F407, F429, F439) | NUCLEO + NORA-W36 | Wi-Fi + BLE via NORA-W36 | `.bin` / `.hex` / `.elf` |
-| **Raspberry Pi Pico** (RP2040) | Pico + NORA-W36 | Wi-Fi + BLE via NORA-W36 | `.uf2` |
-| **Raspberry Pi Pico 2** (RP2350) | Pico 2 + NORA-W36 | Wi-Fi + BLE via NORA-W36 | `.uf2` |
+All host platforms get the same wireless capability from the NORA-W36 module:
+dual-band Wi-Fi 4 (2.4 + 5&nbsp;GHz, 802.11 a/b/g/n) and Bluetooth&nbsp;LE 5.3.
+
+| Host platform | Hardware | Artifact |
+|---|---|---|
+| **Windows 10/11 x64** | PC + NORA-W36 EVK (USB-UART) | signed `.exe` |
+| **Linux x86_64** | PC / SBC + NORA-W36 EVK | `.tar.gz` |
+| **STM32 H7** (H753, H743, H735, H723, H750) | NUCLEO / Discovery + NORA-W36 | `.bin` / `.hex` / `.elf` |
+| **STM32 F4** (F407, F429, F439) | NUCLEO + NORA-W36 | `.bin` / `.hex` / `.elf` |
+| **Raspberry Pi Pico** (RP2040) | Pico + NORA-W36 | `.uf2` |
+| **Raspberry Pi Pico 2** (RP2350) | Pico 2 + NORA-W36 | `.uf2` |
 
 Every release artifact ships with a SHA-256 checksum sidecar
 (`<file>.sha256`). The Windows `.exe` is Authenticode-signed.
@@ -125,11 +128,12 @@ state, fabric/subscription health, and current cluster values.
 ## Hardware: NORA-W36
 
 [NORA-W36](https://www.u-blox.com/en/product/nora-w36-series) is a u-blox
-short-range module providing **Wi-Fi 4** (2.4&nbsp;GHz) and **Bluetooth&nbsp;LE 5.3**
-in a single 10 &times; 14 &times; 2.2&nbsp;mm SMD package. In this application
-NORA-W36 runs u-connect&nbsp;Express firmware (`AT`-controlled offload engine)
-so any host MCU &mdash; from an STM32 F407 to a desktop PC &mdash; can run a
-full Matter end-node by just driving a UART.
+short-range module providing **dual-band Wi-Fi 4** (IEEE&nbsp;802.11&nbsp;a/b/g/n,
+2.4 + 5&nbsp;GHz) and **Bluetooth&nbsp;LE 5.3** in a single
+14.3 &times; 10.4 &times; 1.9&nbsp;mm SMD package. In this application NORA-W36
+runs u-connect&nbsp;Express firmware (`AT`-controlled offload engine) so any
+host MCU &mdash; from an STM32 F407 to a desktop PC &mdash; can run a full
+Matter end-node by just driving a UART.
 
 The host-side glue is provided by
 [ucxclient](https://github.com/u-blox/u-connectClient), the open-source
