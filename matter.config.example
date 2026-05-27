@@ -1,0 +1,348 @@
+# ==============================================================================
+# matter.config - ucx-matter-app Configuration
+# ==============================================================================
+#
+# Copy this file to matter.config and edit with your values.
+# This file is gitignored (contains passwords and local settings).
+#
+# The app loads this file from the working directory (run/).
+# Lines starting with # are comments. Empty lines are ignored.
+# Format: KEY=VALUE (no spaces around =)
+#
+# Files in run/ directory:
+#   matter.config         - THIS FILE: all user-editable settings (text)
+#   matter_kvs.bin        - Matter SDK internal state: fabrics, ACLs, sessions
+#                           (binary, wiped on factory reset with 'd' key)
+#   matter_settings.bin   - App preferences: AT log, web server toggles
+#                           (binary, survives factory reset, toggled with keys)
+#   ucx-matter-app.log    - Application log (overwritten each start)
+#
+
+# ==============================================================================
+# [UCX] Hardware Connection (NORA-W36, ALMA, future modules)
+# ==============================================================================
+# Vendor-neutral UCX_* keys. Legacy NORA_* keys are still accepted silently
+# for backward compatibility with older matter.config files.
+
+# Serial port for the UCX module
+# Windows: COM31, COM7, etc.  Linux: /dev/ttyUSB0, /dev/ttyACM0
+# WSL2: /dev/ttyS31 (COM31 mapped)  STM32: ignored (hardwired UART)
+# Set to AUTO for automatic detection (scans USB serial devices)
+UCX_COM_PORT=AUTO
+
+# Baud rate for UCX module UART communication
+# The module always starts at 115200 after power cycle.
+# The app upgrades to the target baud rate after initial handshake.
+#
+# Common values:
+#   115200   - Default, no upgrade (safe, works everywhere)
+#   921600   - Fast, works with most USB-serial adapters
+#   1000000  - 1 Mbit (STM32 via ST-Link VCP bridge)
+#   3000000  - 3 Mbit (direct FTDI/CP2102, requires flow control)
+#
+# Higher baud = faster socket I/O. A 1048-byte packet takes:
+#   115200:  ~91ms    921600: ~11ms    3000000: ~3.5ms
+UCX_BAUD_RATE=1000000
+
+# Hardware flow control (CTS/RTS)
+# Required for baud rates above 1 Mbit to prevent RX overflow.
+# Disable if using ST-Link VCP bridge (no CTS/RTS pass-through).
+#   true  - Enable CTS/RTS (recommended for direct FTDI at high baud)
+#   false - Disable (required for ST-Link, safe for 115200-1Mbit)
+UCX_FLOW_CONTROL=false
+
+# Socket read mode - how the UCX module delivers received data
+#   buffered       - USORM=0: UESODA notification, then read AT command
+#                    Safer, works with all firmware versions. Slightly slower.
+#   direct_binary  - USORM=2: UESODBF with inline binary data, no read needed
+#                    Faster, eliminates read AT commands. Requires firmware 3.0+.
+#
+# Use 'buffered' for debugging data flow issues or with older firmware.
+# Use 'direct_binary' for production (lower latency, fewer AT round-trips).
+UCX_SOCKET_MODE=buffered
+
+# Heartbeat interval in seconds (0 = disabled)
+# When the UCX module is idle (no AT commands) for this many seconds,
+# the app sends AT/OK to verify the module is alive.
+# If no response after 3 retries, triggers automatic recovery.
+UCX_HEARTBEAT_INTERVAL=30
+
+# Force UCX module reboot at every startup
+# By default, the app skips reboot when the module is already at 115200 baud
+# (saves ~8 seconds). Enable this if you experience stale state issues with
+# BLE GATT server, mDNS, WiFi, or sockets from a previous session.
+#   false - Skip reboot when possible (fast startup, default)
+#   true  - Always reboot at startup (clean state, slower)
+#UCX_FORCE_RESET=false
+
+# Wi-Fi regulatory domain (determines allowed channels and TX power)
+# MUST match the country where the device is deployed (legal requirement).
+# This is a GLOBAL setting — applies to all WiFi operations (scan, connect,
+# commissioning) and to all WiFi profiles. There is no per-profile setting:
+# the radio's allowed channels are a property of the deployment country, not
+# of the SSID.
+#
+# Default if unset or commented out: 0 (World mode — safest, works everywhere,
+# but limited to channels common to all regions). Set explicitly for full
+# channel access in your deployment country.
+#
+#   0=World  1=ETSI(Europe)  2=FCC(USA)  3=IC(Canada)  4=NZ
+#   5=MKK(Japan)  6=NCC(Taiwan)  7=ACMA(Australia)  8=KCC(Korea)
+#   9=SA(South Africa)  10=Brazil
+UCX_REG_DOMAIN=0
+
+# Wi-Fi channel list. Narrows scan/connect to specific channels.
+# Empty/unset = use full regdomain default. Reg domain still caps which
+# channels are legal — this further restricts WITHIN that.
+#
+# Why use this:
+#   * Skip the slow 5 GHz DFS scan during commissioning
+#   * Force 5 GHz only (less crowded, higher throughput) or 2.4 GHz only
+#     (better range, more devices)
+#   * Lock to a known AP channel for deterministic, fast association
+#
+# Accepted formats:
+#   6                          Single channel
+#   1,6,11                     Comma-separated list
+#   1-13                       Range
+#   2.4g                       Preset: [1, 6, 11]                (non-overlap 2.4 GHz)
+#   2.4g-all                   Preset: [1..13]                   (all 2.4 GHz)
+#   5g                         Preset: [36, 40, 44, 48, 149..161] (UNII-1+3 5 GHz)
+#   5g-all                     Preset: [36..165]                 (all 5 GHz)
+#   all                        Preset: 2.4g + 5g  -> [1, 6, 11, 36, 40, 44, 48, 149, 153, 157, 161]
+#                              (commons of both bands; use 2.4g-all,5g-all for everything)
+#   2.4g,36,40                 Preset + extras  -> [1, 6, 11, 36, 40]
+#
+# Example: prefer 5 GHz only
+#UCX_CHANNEL_LIST=5g
+#
+# Example: lock to AP channel 6 (fastest commissioning if you know it)
+#UCX_CHANNEL_LIST=6
+#
+# Example: 2.4 GHz only, all channels (max compatibility, slowest scan)
+#UCX_CHANNEL_LIST=2.4g-all
+#UCX_CHANNEL_LIST=
+
+# Wi-Fi power save mode. Allows the UCX module to doze between beacons,
+# reducing current draw significantly when idle.
+#   0=Off (default — always active, until power-save issues are resolved)
+#   1=On  (doze between beacons)
+UCX_POWER_SAVE=0
+
+# Power save active timeout in milliseconds.
+# After this period of inactivity, the UCX module enters power save state.
+# Range: 0-60000ms. Default: 3000ms (3 seconds).
+# Higher values improve responsiveness (Matter MRP, ping, web server).
+# Lower values save more power (battery devices).
+UCX_POWER_SAVE_TIMEOUT=3000
+
+# ==============================================================================
+# [Network] Static IP Configuration (optional)
+# ==============================================================================
+#
+# By default, DHCP is used. Uncomment and fill in to use a static IP address.
+# All four fields are required for static IP mode.
+# If STATIC_IP is empty or commented out, DHCP is used.
+#
+# STATIC_IP=192.168.1.100
+# STATIC_MASK=255.255.255.0
+# STATIC_GATEWAY=192.168.1.1
+# STATIC_DNS=8.8.8.8
+
+# ==============================================================================
+# [WiFi] Network Profiles
+# ==============================================================================
+#
+# Multiple WiFi profiles supported. App scans for each SSID and connects
+# to the strongest available signal (RSSI-based).
+# WIFI_LAST_ACTIVE_PROFILE is auto-updated on successful connection.
+#
+# Note: regulatory domain is GLOBAL (UCX_REG_DOMAIN above), not per-profile.
+
+# Auto-updated: last profile that connected successfully (faster reconnect)
+WIFI_LAST_ACTIVE_PROFILE=0
+
+# Profile 0 - Primary network
+WIFI_PROFILE_0_SSID=MyHomeWiFi
+WIFI_PROFILE_0_PASSWORD=MyPassword123
+
+# Profile 1 - Secondary network
+#WIFI_PROFILE_1_SSID=OfficeWiFi
+#WIFI_PROFILE_1_PASSWORD=OfficePass456
+
+# Profile 2 - Mobile hotspot
+#WIFI_PROFILE_2_SSID=MyPhone
+#WIFI_PROFILE_2_PASSWORD=HotspotPass
+
+# ==============================================================================
+# [Matter] Device Identity
+# ==============================================================================
+#
+# These values are reported during commissioning and shown in controller apps.
+# For CSA certification, replace test values with your official CSA-assigned IDs.
+
+# Vendor ID (16-bit hex: 0xFFF1 = Matter test vendor)
+MATTER_VENDOR_ID=0xFFF1
+
+# Product ID (16-bit hex: 0x8000 = test product)
+MATTER_PRODUCT_ID=0x8000
+
+# Device name shown in controller apps (max 32 chars)
+MATTER_DEVICE_NAME=ucx-matter-app
+
+# Setup discriminator (12-bit: 0-4095, for BLE/mDNS device discovery)
+# Default 2736 (0xAB0) is u-blox specific — avoids collisions with Matter SDK default 3840
+MATTER_DISCRIMINATOR=2736
+
+# Setup passcode (27-bit: 1-99999998)
+# Invalid: 0, 11111111, 22222222...99999999, 12345678, 87654321
+# Default 36363636 is u-blox specific — avoids collisions with Matter SDK default 20202021
+MATTER_PASSCODE=36363636
+
+# ==============================================================================
+# [Matter] Hardware & Software Information
+# ==============================================================================
+
+MATTER_HARDWARE_VERSION=1
+MATTER_HARDWARE_VERSION_STRING=NORA-W36-EVK Rev1.0
+
+# Serial number (empty = auto-generate from NORA-W36 module serial)
+MATTER_SERIAL_NUMBER=
+
+# Software version (32-bit hex: 0xAABBCCDD = major.minor.patch.build)
+MATTER_SOFTWARE_VERSION=0x03040000
+MATTER_SOFTWARE_VERSION_STRING=3.4.0
+
+# ==============================================================================
+# [Matter] Manufacturing Information (for DAC)
+# ==============================================================================
+
+MATTER_MANUFACTURING_DATE=2025-01-01
+MATTER_PART_NUMBER=UCX-MATTER-APP
+MATTER_PRODUCT_URL=https://www.u-blox.com
+MATTER_PRODUCT_LABEL=u-blox Matter Reference Device
+
+# ==============================================================================
+# [AP] WiFi Access Point Provisioning
+# ==============================================================================
+#
+# SoftAP captive portal for WiFi provisioning when BLE is not available.
+# Press 'a' key at runtime to start/stop AP mode.
+# Users connect to the AP WiFi, browse to http://192.168.4.1/setup,
+# and enter home WiFi credentials via the web form.
+#
+# NORA-W36 cannot do AP+STA simultaneously — AP mode disconnects STA.
+# After credentials are entered, AP tears down and device connects as STA.
+
+# AP SSID (network name visible to users)
+# Leave empty or comment out for auto-generated name "ucx-matter-XXXX"
+#AP_SSID=ucx-matter-setup
+
+# AP password (WPA2, 8-63 characters)
+# Leave empty or comment out for open network (no password)
+#AP_PASSWORD=
+
+# AP WiFi channel (1-11, default 6)
+#AP_CHANNEL=6
+
+# ==============================================================================
+# [Dev] Developer & Testing Settings
+# ==============================================================================
+#
+# These settings are for development and testing only.
+# Remove or comment out for production builds.
+
+# Developer mode: auto-connect WiFi on startup (skip commissioning WiFi)
+# When enabled, the app connects using WiFi profiles above immediately,
+# without waiting for a Matter commissioner to provide credentials.
+#   true  - Auto-connect WiFi (dev/testing)
+#   false - Wait for Matter commissioning (production)
+DEV_MODE=false
+
+# Test mode: enable UDP/BLE echo server for automated testing
+# Echoes received packets back with bit 7 set on first byte.
+# Also enables /api/test/info endpoint on web server.
+#   true  - Enable test echo mode
+#   false - Normal operation
+TEST_MODE=false
+
+# AT command logging: show raw AT commands in log
+# Useful for debugging NORA-W36 communication issues.
+# Can also be toggled at runtime with 'u' key.
+#   true  - Log all AT commands
+#   false - Quiet mode
+AT_LOG=true
+
+# Web server: start HTTP server on NORA-W36 port 80
+# Provides device info, status, and REST API.
+# Can also be toggled at runtime with 'w' key.
+WEB_SERVER=false
+
+# Verbose Matter logging: enable detailed SDK debug output
+# Warning: very noisy, slows down operation significantly.
+# Can also be toggled at runtime with 'l' key.
+VERBOSE_LOGGING=false
+
+# QR code display mode on serial terminal
+# Controls how the commissioning QR code is rendered in the console/terminal.
+#   utf8  - UTF-8 block characters (██) - best contrast, requires UTF-8 terminal (default)
+#   ascii - Pure ASCII (##) - works on any terminal, lower contrast
+#   none  - No QR code display on terminal (QR still available on web dashboard)
+QR_DISPLAY_MODE=utf8
+
+# ==============================================================================
+# [Sniffer] WLAN Pi Packet Capture (optional, debug only)
+# ==============================================================================
+#
+# Controls scripts/matter-sniff.py, a helper that SSHes into a WLAN Pi,
+# sets it to monitor mode on a given channel, captures 802.11 frames via
+# tcpdump, and downloads the pcap to run/captures/ when you press Ctrl+C.
+#
+# Run alongside the app in a second terminal:
+#     python scripts/matter-sniff.py --channel 6 --name commission
+#
+# All keys are optional — only set if you want the sniffer to auto-read
+# config from here instead of requiring --host on every invocation.
+
+# WLAN Pi IP or hostname
+#UCX_SNIFFER_HOST=192.168.1.202
+
+# SSH user (default: wlanpi)
+#UCX_SNIFFER_USER=wlanpi
+
+# SSH password (leave empty for key-based auth)
+#UCX_SNIFFER_PASSWORD=
+
+# Base wireless interface on the WLAN Pi (default: wlan0)
+#UCX_SNIFFER_IFACE=wlan0
+
+# Local directory for captured pcap files (default: run/captures)
+#UCX_PCAP_DIR=run/captures
+
+# ==============================================================================
+# Notes
+# ==============================================================================
+#
+# Runtime key controls (while app is running):
+#   a  - Toggle AP provisioning (captive portal)
+#   c  - Commission (start BLE advertising)
+#   d  - Factory reset (clears Matter data AND NORA-W36 settings)
+#   w  - Toggle web server
+#   u  - Toggle AT command logging
+#   l  - Toggle verbose Matter logging
+#   t  - Toggle test echo mode
+#   r  - Restart app (picks up new build from out/)
+#   q  - Quit
+#
+# Config file priority (highest to lowest):
+#   1. Command-line arguments (--port COM7, --test, --dev)
+#   2. matter.config file settings
+#   3. Built-in defaults
+#
+# For CSA certification:
+#   1. Get official Vendor ID from CSA (Connectivity Standards Alliance)
+#   2. Register your Product ID with CSA
+#   3. Obtain production Device Attestation Certificates (DAC)
+#   4. Replace test certificates in certs/ folder
+#   5. Set DEV_MODE=false and TEST_MODE=false
+#
