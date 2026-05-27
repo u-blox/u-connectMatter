@@ -12,7 +12,7 @@
 # Files in run/ directory:
 #   matter.config         - THIS FILE: all user-editable settings (text)
 #   matter_kvs.bin        - Matter SDK internal state: fabrics, ACLs, sessions
-#                           (binary, wiped on factory reset with 'd' key)
+#                           (binary, wiped on factory reset with '!' key)
 #   matter_settings.bin   - App preferences: AT log, web server toggles
 #                           (binary, survives factory reset, toggled with keys)
 #   ucx-matter-app.log    - Application log (overwritten each start)
