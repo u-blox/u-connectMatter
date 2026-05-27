@@ -21,14 +21,14 @@
 # ==============================================================================
 # [UCX] Hardware Connection (NORA-W36, ALMA, future modules)
 # ==============================================================================
-# Vendor-neutral UCX_* keys. Legacy NORA_* keys are still accepted silently
+# Vendor-neutral UCM_* keys. Legacy NORA_* keys are still accepted silently
 # for backward compatibility with older matter.config files.
 
 # Serial port for the UCX module
 # Windows: COM31, COM7, etc.  Linux: /dev/ttyUSB0, /dev/ttyACM0
 # WSL2: /dev/ttyS31 (COM31 mapped)  STM32: ignored (hardwired UART)
 # Set to AUTO for automatic detection (scans USB serial devices)
-UCX_COM_PORT=AUTO
+UCM_COM_PORT=AUTO
 
 # Baud rate for UCX module UART communication
 # The module always starts at 115200 after power cycle.
@@ -42,14 +42,14 @@ UCX_COM_PORT=AUTO
 #
 # Higher baud = faster socket I/O. A 1048-byte packet takes:
 #   115200:  ~91ms    921600: ~11ms    3000000: ~3.5ms
-UCX_BAUD_RATE=1000000
+UCM_BAUD_RATE=1000000
 
 # Hardware flow control (CTS/RTS)
 # Required for baud rates above 1 Mbit to prevent RX overflow.
 # Disable if using ST-Link VCP bridge (no CTS/RTS pass-through).
 #   true  - Enable CTS/RTS (recommended for direct FTDI at high baud)
 #   false - Disable (required for ST-Link, safe for 115200-1Mbit)
-UCX_FLOW_CONTROL=false
+UCM_FLOW_CONTROL=false
 
 # Socket read mode - how the UCX module delivers received data
 #   buffered       - USORM=0: UESODA notification, then read AT command
@@ -59,13 +59,13 @@ UCX_FLOW_CONTROL=false
 #
 # Use 'buffered' for debugging data flow issues or with older firmware.
 # Use 'direct_binary' for production (lower latency, fewer AT round-trips).
-UCX_SOCKET_MODE=buffered
+UCM_SOCKET_MODE=buffered
 
 # Heartbeat interval in seconds (0 = disabled)
 # When the UCX module is idle (no AT commands) for this many seconds,
 # the app sends AT/OK to verify the module is alive.
 # If no response after 3 retries, triggers automatic recovery.
-UCX_HEARTBEAT_INTERVAL=30
+UCM_HEARTBEAT_INTERVAL=30
 
 # Force UCX module reboot at every startup
 # By default, the app skips reboot when the module is already at 115200 baud
@@ -73,7 +73,7 @@ UCX_HEARTBEAT_INTERVAL=30
 # BLE GATT server, mDNS, WiFi, or sockets from a previous session.
 #   false - Skip reboot when possible (fast startup, default)
 #   true  - Always reboot at startup (clean state, slower)
-#UCX_FORCE_RESET=false
+#UCM_FORCE_RESET=false
 
 # Wi-Fi regulatory domain (determines allowed channels and TX power)
 # MUST match the country where the device is deployed (legal requirement).
@@ -89,7 +89,7 @@ UCX_HEARTBEAT_INTERVAL=30
 #   0=World  1=ETSI(Europe)  2=FCC(USA)  3=IC(Canada)  4=NZ
 #   5=MKK(Japan)  6=NCC(Taiwan)  7=ACMA(Australia)  8=KCC(Korea)
 #   9=SA(South Africa)  10=Brazil
-UCX_REG_DOMAIN=0
+UCM_REG_DOMAIN=0
 
 # Wi-Fi channel list. Narrows scan/connect to specific channels.
 # Empty/unset = use full regdomain default. Reg domain still caps which
@@ -114,14 +114,14 @@ UCX_REG_DOMAIN=0
 #   2.4g,36,40                 Preset + extras  -> [1, 6, 11, 36, 40]
 #
 # Example: prefer 5 GHz only
-#UCX_CHANNEL_LIST=5g
+#UCM_CHANNEL_LIST=5g
 #
 # Example: lock to AP channel 6 (fastest commissioning if you know it)
-#UCX_CHANNEL_LIST=6
+#UCM_CHANNEL_LIST=6
 #
 # Example: 2.4 GHz only, all channels (max compatibility, slowest scan)
-#UCX_CHANNEL_LIST=2.4g-all
-#UCX_CHANNEL_LIST=
+#UCM_CHANNEL_LIST=2.4g-all
+#UCM_CHANNEL_LIST=
 
 # Wi-Fi power save mode. Allows the UCX module to doze between beacons,
 # reducing current draw significantly when idle.
@@ -157,7 +157,7 @@ UCM_POWER_SAVE_TIMEOUT=3000
 # to the strongest available signal (RSSI-based).
 # WIFI_LAST_ACTIVE_PROFILE is auto-updated on successful connection.
 #
-# Note: regulatory domain is GLOBAL (UCX_REG_DOMAIN above), not per-profile.
+# Note: regulatory domain is GLOBAL (UCM_REG_DOMAIN above), not per-profile.
 
 # Auto-updated: last profile that connected successfully (faster reconnect)
 WIFI_LAST_ACTIVE_PROFILE=0
@@ -305,19 +305,19 @@ QR_DISPLAY_MODE=utf8
 # config from here instead of requiring --host on every invocation.
 
 # WLAN Pi IP or hostname
-#UCX_SNIFFER_HOST=192.168.1.202
+#UCM_SNIFFER_HOST=192.168.1.202
 
 # SSH user (default: wlanpi)
-#UCX_SNIFFER_USER=wlanpi
+#UCM_SNIFFER_USER=wlanpi
 
 # SSH password (leave empty for key-based auth)
-#UCX_SNIFFER_PASSWORD=
+#UCM_SNIFFER_PASSWORD=
 
 # Base wireless interface on the WLAN Pi (default: wlan0)
-#UCX_SNIFFER_IFACE=wlan0
+#UCM_SNIFFER_IFACE=wlan0
 
 # Local directory for captured pcap files (default: run/captures)
-#UCX_PCAP_DIR=run/captures
+#UCM_PCAP_DIR=run/captures
 
 # ==============================================================================
 # Notes
