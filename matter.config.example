@@ -324,15 +324,22 @@ QR_DISPLAY_MODE=utf8
 # ==============================================================================
 #
 # Runtime key controls (while app is running):
-#   a  - Toggle AP provisioning (captive portal)
-#   c  - Commission (start BLE advertising)
-#   d  - Factory reset (clears Matter data AND NORA-W36 settings)
-#   w  - Toggle web server
-#   u  - Toggle AT command logging
+#   !  - Factory reset (clears Matter fabrics AND NORA-W36 settings)
+#   c  - Open/close commissioning window
+#   d  - Dashboard (WiFi, fabric count, LED, AT log, web server status)
+#   f  - Firmware OTA info
+#   h  - Help (full key list)
 #   l  - Toggle verbose Matter logging
-#   t  - Toggle test echo mode
-#   r  - Restart app (picks up new build from out/)
-#   q  - Quit
+#   m  - mDNS diagnostics and filter stats
+#   n  - NTP time sync
+#   s  - Toggle simple console (mute SDK log firehose)
+#   t  - Toggle test echo mode (BLE + UDP echo responder)
+#   u  - Toggle ucxclient AT command logging
+#   x  - XMODEM NORA-W36 firmware update
+#   q  - Quit (desktop only)
+#   a  - Toggle AP provisioning captive portal  [requires UCM_ENABLE_WEB_SERVER]
+#   w  - Start/stop web server                  [requires UCM_ENABLE_WEB_SERVER]
+#   v  - Vegas slot machine                     [requires UCM_VEGAS_MODE]
 #
 # Config file priority (highest to lowest):
 #   1. Command-line arguments (--port COM7, --test, --dev)
