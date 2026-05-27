@@ -127,14 +127,14 @@ UCX_REG_DOMAIN=0
 # reducing current draw significantly when idle.
 #   0=Off (default — always active, until power-save issues are resolved)
 #   1=On  (doze between beacons)
-UCX_POWER_SAVE=0
+UCM_POWER_SAVE=0
 
 # Power save active timeout in milliseconds.
 # After this period of inactivity, the UCX module enters power save state.
 # Range: 0-60000ms. Default: 3000ms (3 seconds).
 # Higher values improve responsiveness (Matter MRP, ping, web server).
 # Lower values save more power (battery devices).
-UCX_POWER_SAVE_TIMEOUT=3000
+UCM_POWER_SAVE_TIMEOUT=3000
 
 # ==============================================================================
 # [Network] Static IP Configuration (optional)
