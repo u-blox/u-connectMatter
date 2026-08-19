@@ -17,7 +17,8 @@
 > platform mDNS + IPv6 multicast features Matter depends on). Check your
 > module's version with `AT+GMR` and update via the
 > [u-connectXpress NORA-W36 release notes](https://github.com/u-blox/u-connectXpress/tree/main/NORA-W36)
-> if needed.
+> if needed. The app checks the firmware version at startup and can update the
+> module itself — see [Updating NORA-W36 firmware](#updating-nora-w36-firmware).
 
 ---
 
@@ -28,13 +29,16 @@ platforms, using the **u-blox NORA-W36** module for dual-band Wi-Fi 4
 (2.4 + 5&nbsp;GHz) and Bluetooth&nbsp;LE 5.3 connectivity. It demonstrates how to ship a CSA-certifiable Matter product on
 top of u-connect&nbsp;Express firmware with minimal host-side code.
 
-Out of the box it implements the standard Matter end-node device types:
+The release binaries run the **multi-endpoint combo demo** — one Matter node
+exposing a full house of virtual devices you can drive from the keyboard:
 
-- **Lighting** &mdash; On/Off + Level Control
+- **Color Lights** ×3 + **Dimmable Light** (On/Off + Level Control)
 - **Door Lock**
-- **Switch** (action button)
-- **Temperature / humidity / occupancy sensor**
-- **Thermostat** (combo configuration)
+- **Light Switch** (action button)
+- **Temperature / Humidity / Occupancy / Contact / Soil-moisture sensors**
+- **Thermostat** (interactive)
+- **Water Leak Detector**, **Smoke/CO Alarm**
+- **Doorbell Chime**, **Window Covering**, **Fan**
 
 Commissioning is the standard Matter flow: scan the QR code from the device's
 serial console (or web dashboard) with the Apple Home / Google Home / Amazon
@@ -66,7 +70,7 @@ Every release artifact ships with a SHA-256 checksum sidecar
 For **Windows / Linux PCs** there is no wiring: the **EVK-NORA-W36** evaluation
 kit exposes the module's UART through its on-board USB-UART bridge. Plug in the
 USB cable, the host enumerates a virtual COM port (`COMxx` on Windows,
-`/dev/ttyUSB0` on Linux), and the launcher auto-detects it.
+`/dev/ttyUSB0` on Linux), and the app auto-detects it.
 
 For the **STM32** and **Pico** targets the host's UART is wired directly to
 NORA-W36's UART. Cross TX&harr;RX, share GND, supply 3.3&nbsp;V. Hardware flow
@@ -107,17 +111,20 @@ u-blox product page.
 1. Download the latest **`u-connect-matter-windows-x64-<version>.exe`** from
    [Releases](https://github.com/u-blox/u-connectMatter/releases/latest).
 2. Plug in your **EVK-NORA-W36** evaluation kit via USB.
-3. Run the `.exe`. The launcher auto-detects the EVK's COM port, opens the
-   serial link to the module, starts the Matter stack, and prints the
-   commissioning QR code on the console.
+3. Run the `.exe`. The app auto-detects the EVK's COM port, opens the serial
+   link to the module, starts the Matter stack, and prints the commissioning
+   QR code on the console. On first run it also writes a starter
+   `matter.config` next to the `.exe`.
 4. Scan the QR code from your phone's Matter-compatible smart-home app.
 
-A built-in **web dashboard** (default `http://localhost:8080`) shows live link
+Press `h` (or `?`) at any time for the interactive keyboard command list, and
+`w` to start the built-in **web dashboard** — served by the NORA-W36 module at
+`http://<device-ip>/` (port 80) once Wi-Fi is connected — showing live link
 state, fabric/subscription health, and current cluster values.
 
 ## Quick start (STM32 NUCLEO + NORA-W36)
 
-1. Wire NORA-W36 EVK UART to the NUCLEO header (RX/TX/CTS/RTS + 3V3 + GND).
+1. Wire NORA-W36 EVK UART to the NUCLEO header (RX/TX + 3V3 + GND, see table above).
 2. Drag-and-drop the matching `.bin`/`.hex` for your board (e.g.
    `u-connect-matter-stm32-h753-<version>.bin`) onto the NUCLEO's mass-storage
    programmer, or flash with STM32CubeProgrammer / `st-flash`.
@@ -129,6 +136,97 @@ state, fabric/subscription health, and current cluster values.
 2. Drag `u-connect-matter-pico-<version>.uf2` (or `pico2`) onto the
    `RPI-RP2` / `RP2350` mass-storage drive.
 3. Open the Pico's USB serial port to see the QR code.
+
+---
+
+## Command-line arguments (Windows / Linux)
+
+```
+u-connect-matter [options] [COMxx | /dev/ttyXXX] [device-type]
+```
+
+All arguments are optional — with no arguments the app auto-detects the serial
+port, loads `matter.config`, and starts the Matter stack. Command-line
+arguments override the corresponding `matter.config` settings.
+
+| Argument | Description |
+|---|---|
+| `--port <port>` | Serial port of the NORA-W36 module (e.g. `--port COM7`, `--port /dev/ttyUSB0`). A bare `COMxx` or `/dev/...` positional argument works too. Default: auto-detect. |
+| `--dev` | Developer mode — auto-connects Wi-Fi using the `WIFI_PROFILE_*` credentials in `matter.config` (skips BLE commissioning of the network). |
+| `--verbose` | Full Matter SDK log stream on the console. By default the console is in *simple* mode: banners + a compact 12-step commissioning card only. The file log records everything either way. |
+| `--simple` | Simple console mode (explicit; already the default). |
+| `--no-matter` | Skip the Matter server — Wi-Fi + web dashboard only (diagnostics). |
+| `--test` | Test mode — BLE + UDP echo responder for automated test scripts. |
+| `--ftxui` | Experimental FTXUI live text-UI dashboard. |
+| `<device-type>` | Device personality for single-device builds: `light` (default), `lock`, `switch`, `temperature`, `waterleak`, `contact`, `chime`, `soil`, `window`, `fan`, `smoke`, `dimmable`. The standard release binary is the multi-endpoint **combo** build, where all device types are always present. |
+
+Examples:
+
+```powershell
+# Auto-detect everything (typical)
+.\u-connect-matter-windows-x64-3.4.7.exe
+
+# Explicit COM port + auto Wi-Fi connect from matter.config
+.\u-connect-matter-windows-x64-3.4.7.exe --port COM31 --dev
+
+# Full SDK logging for debugging
+.\u-connect-matter-windows-x64-3.4.7.exe --verbose
+```
+
+## Configuration — `matter.config`
+
+All user-editable settings live in a plain-text `matter.config` file next to
+the executable (`KEY=VALUE`, `#` comments). A fully-commented template is
+included in this repository: [matter.config](matter.config). On first run the
+app writes a starter file automatically. Highlights:
+
+| Key | Purpose | Default |
+|---|---|---|
+| `UCM_COM_PORT` | Serial port, or `AUTO` for auto-detection | `AUTO` |
+| `UCM_BAUD_RATE` | UART baud after handshake (115200 / 921600 / 1000000 / 3000000) | `1000000` |
+| `UCM_FLOW_CONTROL` | CTS/RTS hardware flow control | `false` |
+| `UCM_REG_DOMAIN` | Wi-Fi regulatory domain (0=World, 1=ETSI, 2=FCC, …) | `0` |
+| `UCM_CHANNEL_LIST` | Restrict Wi-Fi channels (`5g`, `2.4g`, `1,6,11`, …) | full regdomain |
+| `WIFI_PROFILE_0_SSID` / `_PASSWORD` | Wi-Fi credentials (profiles 0–2) used by `--dev` mode | — |
+| `STATIC_IP` / `STATIC_MASK` / `STATIC_GATEWAY` / `STATIC_DNS` | Static IP (DHCP if unset) | DHCP |
+| `MATTER_VENDOR_ID` / `MATTER_PRODUCT_ID` | Matter identity (replace test IDs for certification) | `0xFFF1` / `0x8000` |
+| `MATTER_DISCRIMINATOR` / `MATTER_PASSCODE` | Commissioning discriminator & passcode | `2736` / `36363636` |
+| `MATTER_DEVICE_NAME` | Name shown in controller apps | `ucx-matter-app` |
+| `DEV_MODE` / `TEST_MODE` / `WEB_SERVER` / `AT_LOG` / `VERBOSE_LOGGING` | Persistent equivalents of the CLI flags / runtime toggles | `false`/`false`/`false`/`true`/`false` |
+
+Other files created in the working directory: `matter_kvs.bin` (Matter fabrics,
+ACLs, sessions — wiped by factory reset), `matter_settings.bin` (app
+preferences) and `ucx-matter-app.log` (full application log, overwritten each
+start).
+
+## Keyboard commands
+
+Press `h` or `?` in the console for the complete, build-specific list. The most
+useful ones:
+
+| Key | Action |
+|---|---|
+| `1`–`3` | Toggle Color Lights (endpoints 1–3) |
+| `4` / `5` | Toggle Dimmable / Simple Light |
+| `6` `7` `8` `9` `0` `-` `=` `+` | Doorbell, soil sensor, occupancy, window covering, fan, smoke/CO alarm, brightness, water leak |
+| `c` | Open/close the commissioning window |
+| `d` | Dashboard — Wi-Fi, Matter fabric and device status |
+| `w` | Start/stop the web dashboard (`http://<device-ip>/`) |
+| `a` | Toggle AP provisioning (captive portal for Wi-Fi setup) |
+| `l` / `u` / `s` | Toggle verbose Matter log / AT command log / simple console |
+| `n` | NTP time sync |
+| `x` | XMODEM firmware update menu (NORA-W36) |
+| `!` | **Factory reset** — clears all fabrics, ACLs and the module's Wi-Fi credentials, then exits |
+| `q` | Quit |
+
+## Updating NORA-W36 firmware
+
+The app requires u-connect&nbsp;Express **3.4.0+** and checks at startup. To
+update, drop the firmware file (e.g. `NORA-W36X-SW-3.4.0-056.bin` or the
+release `.zip`) next to the executable (or in a `firmware/` subfolder) and
+start the app — it detects the newer firmware, asks `[y/N]`, and flashes the
+module over XMODEM. After a successful update the file is moved to
+`firmware/archive/`. You can also trigger the menu manually with the `x` key.
 
 ---
 
